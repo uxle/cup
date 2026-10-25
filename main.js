@@ -1,7 +1,7 @@
 /**
  * CuteFish Universal Package (CUP v3.0)
  * GitHub Pages Interactive Script
- * Created by Lionxlover • Follows Cutefish OS Design Guidelines
+ * Created by UXLE • Follows Cutefish OS Design Guidelines
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -284,7 +284,7 @@ function initSimulator() {
     },
     {
       stepIdx: 1,
-      log: '\n<span class="text-cyan">[STAGE 2]</span> Checking cryptographic signature chunk...\n<span class="text-green">[PASS]</span> Ed25519 signature validated with trusted keyring (Lionxlover / Cutefish)'
+      log: '\n<span class="text-cyan">[STAGE 2]</span> Checking cryptographic signature chunk...\n<span class="text-green">[PASS]</span> Ed25519 signature validated with trusted keyring (UXLE / Cutefish)'
     },
     {
       stepIdx: 2,
