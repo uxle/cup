@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CuteFish Universal Package (CUP) — The Next-Gen Linux Package Format by Lionxlover</title>
+  
+  <meta name="description" content="CuteFish Universal Package (CUP v3.0) — Zero-Copy, EROFS-powered, cryptographically sealed universal Linux package manager with native Cutefish Toolkit GUI by Lionxlover.">
+  <meta name="author" content="Lionxlover">
+  <meta name="theme-color" content="#3385FF">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="CuteFish Universal Package (CUP v3.0)">
+  <meta property="og:description" content="Zero-copy direct kernel execution, EROFS compression, Ed25519 cryptographic security, and native Cutefish Toolkit GUI by Lionxlover.">
+  <meta property="og:image" content="assets/png/brand_sheet.png">
+  <meta property="og:type" content="website">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" href="assets/cup_favicon.svg">
+  <link rel="apple-touch-icon" href="assets/png/cup_favicon_180.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand">
+        <img src="assets/cup_logo.svg" alt="CUP Logo" class="brand-icon">
+        <span class="brand-title">
+          CUP
+          <span class="brand-badge">v3.0</span>
+        </span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#gui" class="nav-link">Cutefish GUI</a></li>
+        <li><a href="#simulator" class="nav-link">Live Simulator</a></li>
+        <li><a href="#install" class="nav-link">Download</a></li>
+        <li><a href="https://github.com/Lionxlover/cup" class="nav-link" target="_blank" rel="noopener">Docs</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle Light/Dark Theme" title="Toggle Theme">
+          <!-- Populated by JS -->
+        </button>
+
+        <a href="https://github.com/Lionxlover/cup" class="btn-gh" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>Star on GitHub</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero-section">
+    <div class="container">
+      <div class="hero-pill">
+        <span class="hero-pill-dot"></span>
+        <span>Cutefish OS Native Universal Package • v3.0 Released</span>
+      </div>
+
+      <h1 class="hero-title">
+        The Next-Generation<br>
+        <span class="hero-title-gradient">Zero-Copy Linux</span> Package Format
+      </h1>
+
+      <p class="hero-subtitle">
+        Zero extraction lag. Direct kernel execution via binfmt_misc. Ed25519 cryptographic security.
+        Paired with a modern native Cutefish Toolkit desktop store. Crafted by <strong>Lionxlover</strong>.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="#install" class="btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Install CUP v3.0
+        </a>
+        <a href="https://github.com/Lionxlover/cup" class="btn-secondary" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          Explore Repository
+        </a>
+      </div>
+
+      <!-- Interactive Hero Terminal Card -->
+      <div class="terminal-card">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot dot-red"></span>
+            <span class="terminal-dot dot-yellow"></span>
+            <span class="terminal-dot dot-green"></span>
+          </div>
+
+          <div class="terminal-tabs">
+            <button class="terminal-tab active" data-tab="run">Execute & Run</button>
+            <button class="terminal-tab" data-tab="verify">Verify Signatures</button>
+            <button class="terminal-tab" data-tab="build">Pack Container</button>
+            <button class="terminal-tab" data-tab="gui">Cutefish Store</button>
+          </div>
+
+          <button id="terminalCopyBtn" class="terminal-copy-btn" title="Copy command">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy
+          </button>
+        </div>
+
+        <div class="terminal-body" id="terminalBody">
+          <div class="cmd-comment"># Native kernel execution via binfmt_misc (Zero-overhead)</div>
+          <div class="cmd-line">
+            <span class="cmd-prompt">lion@cutefish:~$</span>
+            <span class="cmd-text">chmod +x cutefish-calc.cup</span>
+          </div>
+          <div class="cmd-line">
+            <span class="cmd-prompt">lion@cutefish:~$</span>
+            <span class="cmd-text">./cutefish-calc.cup</span>
+          </div>
+          <div class="cmd-output">
+            <span class="text-green">[✓] Magic Header verified:</span> CUP v3.0 (Little-Endian)<br>
+            <span class="text-green">[✓] Cryptographic Seal:</span> Ed25519 valid (signer: cutefish-team)<br>
+            <span class="text-green">[✓] Direct EROFS Mount:</span> 0.8ms zero-copy page cache mount<br>
+            <span class="text-cyan">[★] Sandbox:</span> bubblewrap profile initialized (network=isolated)<br>
+            <span class="text-amber">[▶] Launching GUI:</span> Cutefish Calculator (C++20 Toolkit)
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Features Grid -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">ENGINEERED FOR SUPREME PERFORMANCE</span>
+        <h2 class="section-title">Why CUP Changes Everything</h2>
+        <p class="section-desc">
+          Replacing obsolete monolithic packaging with a modern, high-speed, cryptographically sealed universal runtime.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Card 1 -->
+        <div class="feature-card">
+          <div class="feature-icon-box icon-blue">⚡</div>
+          <h3 class="feature-title">Zero-Copy EROFS Engine</h3>
+          <p class="feature-text">
+            No decompression delay. CUP leverages Linux Enhanced Read-Only File System (EROFS) with fixed-output LZ4 compression, mounting into the kernel page cache in under 1 millisecond.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="feature-card">
+          <div class="feature-icon-box icon-green">⚙️</div>
+          <h3 class="feature-title">Native Kernel binfmt_misc</h3>
+          <p class="feature-text">
+            Execute any <code>.cup</code> package directly from the terminal or double-click from your file manager. The Linux kernel recognizes CUP magic bytes and hands execution to the verified loader.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="feature-card">
+          <div class="feature-icon-box icon-coral">🔒</div>
+          <h3 class="feature-title">Ed25519 Cryptographic Seal</h3>
+          <p class="feature-text">
+            Every CUP package carries a tamper-evident digital seal. Signatures and SHA-256 payload integrity are verified in nanoseconds before a single line of binary code is executed.
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="feature-card">
+          <div class="feature-icon-box icon-purple">🎨</div>
+          <h3 class="feature-title">Cutefish Toolkit GUI Store</h3>
+          <p class="feature-text">
+            Built natively with <code>cutefish-toolkit</code> and modern C++20. Adheres strictly to Cutefish OS design rules: squircle radiuses, blur glassmorphism, and instant light/dark styling.
+          </p>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="feature-card">
+          <div class="feature-icon-box icon-teal">🛡️</div>
+          <h3 class="feature-title">Bubblewrap Sandboxing</h3>
+          <p class="feature-text">
+            Applications run enclosed inside secure Bubblewrap container namespaces. Restrict network access, protect user home folders, and enforce AppArmor profiles out-of-the-box.
+          </p>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="feature-card">
+          <div class="feature-icon-box icon-sky">🌐</div>
+          <h3 class="feature-title">Universal Linux Compatibility</h3>
+          <p class="feature-text">
+            One single <code>.cup</code> package runs consistently across Debian, Ubuntu, CutefishOS, Arch Linux, Fedora, and openSUSE without recompilation or dependency hell.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cutefish Toolkit GUI Showcase -->
+  <section class="showcase-section" id="gui">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">DESKTOP USER EXPERIENCE</span>
+        <h2 class="section-title">Cutefish Toolkit Desktop Store</h2>
+        <p class="section-desc">
+          Crafted in pure C++20 with Cutefish UI guidelines for the smoothest desktop package management experience on Linux.
+        </p>
+      </div>
+
+      <div class="showcase-container">
+        <div class="showcase-content">
+          <div class="showcase-tabs">
+            <button class="showcase-tab active" data-view="home">Store Dashboard</button>
+            <button class="showcase-tab" data-view="app">Package Inspector</button>
+            <button class="showcase-tab" data-view="install">Atomic Installer</button>
+          </div>
+
+          <div class="showcase-desc-box">
+            <h3 class="showcase-desc-title" id="showcaseTitle">Cutefish Store & Dashboard</h3>
+            <p class="showcase-desc-text" id="showcaseDesc">
+              Native C++20 Cutefish Toolkit application presenting installed and featured CUP packages. Displays verified badges, developer signatures, and instant one-click launch capabilities.
+            </p>
+            <div class="showcase-pills" id="showcasePills">
+              <span class="showcase-pill">Cutefish::Window</span>
+              <span class="showcase-pill">Native C++20</span>
+              <span class="showcase-pill">Glassmorphism</span>
+              <span class="showcase-pill">Package Discovery</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="showcase-preview-card">
+          <img src="docs/screenshots/home.png" alt="Cutefish Toolkit GUI Store" class="showcase-img" id="showcaseImg">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Verification Simulator -->
+  <section class="demo-section" id="simulator">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">INTERACTIVE VERIFICATION ENGINE</span>
+        <h2 class="section-title">See CUP Verification In Action</h2>
+        <p class="section-desc">
+          Run our live simulator to see how the kernel and CUP daemon validate integrity and provision sandboxes in under 4 milliseconds.
+        </p>
+      </div>
+
+      <div class="sim-box">
+        <div class="sim-header">
+          <div class="sim-title-group">
+            <h3>Package Verification Pipeline</h3>
+            <p>Target: <code>cutefish-calc.cup</code> • Format v3.0 (Little-Endian)</p>
+          </div>
+          <button id="simStartBtn" class="sim-action-btn">
+            Run Verifier Demo
+          </button>
+        </div>
+
+        <div class="sim-stage">
+          <div class="sim-step" id="simStep1">
+            <div class="sim-step-icon">🏷️</div>
+            <div class="sim-step-name">1. Magic Header</div>
+          </div>
+          <div class="sim-step" id="simStep2">
+            <div class="sim-step-icon">🔏</div>
+            <div class="sim-step-name">2. Ed25519 Seal</div>
+          </div>
+          <div class="sim-step" id="simStep3">
+            <div class="sim-step-icon">📦</div>
+            <div class="sim-step-name">3. EROFS Mount</div>
+          </div>
+          <div class="sim-step" id="simStep4">
+            <div class="sim-step-icon">🛡️</div>
+            <div class="sim-step-name">4. Sandbox Init</div>
+          </div>
+        </div>
+
+        <pre class="sim-log-screen" id="simLogScreen"><span class="text-amber">[READY]</span> Press "Run Verifier Demo" to execute real-time validation sequence...</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download & Quick Start Section -->
+  <section class="download-section" id="install">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">INSTALLATION & USAGE</span>
+        <h2 class="section-title">Get Started With CUP</h2>
+        <p class="section-desc">
+          Install the official Debian package or build directly from source for any Linux distribution.
+        </p>
+      </div>
+
+      <div class="download-grid">
+        <!-- Debian / Ubuntu Package -->
+        <div class="download-card">
+          <div>
+            <div class="download-card-badge">RECOMMENDED (DEBIAN / UBUNTU / CUTEFISH)</div>
+            <h3 class="download-card-title">Debian Package (.deb)</h3>
+            <p class="download-card-desc">
+              Complete installation including CLI runner, daemon, kernel binfmt_misc rule, and Cutefish Toolkit GUI store.
+            </p>
+            <div class="terminal-body" style="border-radius: var(--radius-sm); margin-bottom: 20px;">
+              <div class="cmd-line">
+                <span class="cmd-prompt">#</span>
+                <span class="cmd-text">sudo dpkg -i dist/cup-package-manager_3.0.0_amd64.deb</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn-primary copy-cmd-btn download-btn" data-cmd="sudo dpkg -i dist/cup-package-manager_3.0.0_amd64.deb">
+            Copy Install Command
+          </button>
+        </div>
+
+        <!-- Universal Build From Source -->
+        <div class="download-card">
+          <div>
+            <div class="download-card-badge">ALL LINUX DISTRIBUTIONS</div>
+            <h3 class="download-card-title">Build From Source</h3>
+            <p class="download-card-desc">
+              Compile the high-performance C core, Rust crypto engine, and Cutefish Toolkit GUI from repository source.
+            </p>
+            <div class="terminal-body" style="border-radius: var(--radius-sm); margin-bottom: 20px;">
+              <div class="cmd-line">
+                <span class="cmd-prompt">#</span>
+                <span class="cmd-text">git clone https://github.com/Lionxlover/cup.git &amp;&amp; make</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn-secondary copy-cmd-btn download-btn" data-cmd="git clone https://github.com/Lionxlover/cup.git && cd cup && make">
+            Copy Build Command
+          </button>
+        </div>
+
+        <!-- Sample CUP Application -->
+        <div class="download-card">
+          <div>
+            <div class="download-card-badge">READY TO RUN</div>
+            <h3 class="download-card-title">Cutefish Calculator (.cup)</h3>
+            <p class="download-card-desc">
+              Experience the sample Cutefish calculator packaged in the CUP v3.0 zero-copy format.
+            </p>
+            <div class="terminal-body" style="border-radius: var(--radius-sm); margin-bottom: 20px;">
+              <div class="cmd-line">
+                <span class="cmd-prompt">#</span>
+                <span class="cmd-text">chmod +x cutefish-calc.cup &amp;&amp; ./cutefish-calc.cup</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn-secondary copy-cmd-btn download-btn" data-cmd="chmod +x cutefish-calc.cup && ./cutefish-calc.cup">
+            Copy Launch Command
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="brand">
+            <img src="assets/cup_logo.svg" alt="CUP Logo" class="brand-icon">
+            <span class="brand-title">CUP</span>
+          </a>
+          <p>
+            CuteFish Universal Package — The Next-Generation Zero-Copy Linux Package Format & Desktop Store.
+          </p>
+          <p style="margin-top: 10px; font-weight: 600; color: var(--accent-blue);">
+            Crafted with passion by Lionxlover from GitHub.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Documentation</h4>
+          <ul>
+            <li><a href="https://github.com/Lionxlover/cup#readme" target="_blank" rel="noopener">Format Specification v3.0</a></li>
+            <li><a href="https://github.com/Lionxlover/cup/blob/main/CONFORMANCE_TEST_REPORT.txt" target="_blank" rel="noopener">Conformance Test Report</a></li>
+            <li><a href="https://github.com/Lionxlover/cup/blob/main/TEST_AND_UX_REPORT.md" target="_blank" rel="noopener">Cutefish UI & UX Guide</a></li>
+            <li><a href="https://github.com/Lionxlover/cup/blob/main/SECURITY.md" target="_blank" rel="noopener">Security Architecture</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Project & Community</h4>
+          <ul>
+            <li><a href="https://github.com/Lionxlover/cup" target="_blank" rel="noopener">GitHub Repository</a></li>
+            <li><a href="https://github.com/Lionxlover" target="_blank" rel="noopener">Lionxlover Profile</a></li>
+            <li><a href="https://github.com/cutefishos" target="_blank" rel="noopener">CutefishOS Organization</a></li>
+            <li><a href="https://github.com/Lionxlover/cup/issues" target="_blank" rel="noopener">Report Issue / Feedback</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          &copy; 2026 Lionxlover. Licensed under the GNU General Public License v3.0.
+        </div>
+        <div class="footer-credit">
+          Designed with Cutefish OS Guidelines • Made by <a href="https://github.com/Lionxlover" target="_blank" rel="noopener">Lionxlover from GitHub</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script -->
+  <script src="main.js"></script>
+</body>
+</html>
