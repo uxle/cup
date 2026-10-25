@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = [
+    "libcup2_rs",
+    "cup_installer_rs",
+]
+
+[workspace.package]
+version = "3.0.0"
+edition = "2021"
+license = "MPL-2.0"
+authors = ["CuteFish Universal Package Architecture Group"]

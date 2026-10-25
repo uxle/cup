@@ -1,0 +1,31 @@
+name: CUP CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc g++ make cmake libssl-dev qtbase5-dev qtdeclarative5-dev qml-module-qtquick2 qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtquick-window2 librsvg2-bin
+
+      - name: Build Core Engine & Tools
+        run: make all
+
+      - name: Run Normative Conformance & Hostile Tests
+        run: make test
+
+      - name: Build Qt/QML Graphical Installer
+        run: make gui
+
+      - name: Run GUI Test Battery
+        run: make gui-test

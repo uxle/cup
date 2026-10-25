@@ -1,0 +1,10 @@
+[package]
+name = "libcup2_rs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Memory-safe Rust implementation & C23 FFI bindings for CUP v3.0 (RFC CUP-3.0)"
+
+[lib]
+name = "libcup2_rs"
+crate-type = ["rlib", "cdylib", "staticlib"]

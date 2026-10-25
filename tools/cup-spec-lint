@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+# [NORMATIVE] Appendix G.1: cup-spec-lint — Structural & Normative Consistency Gate (CUP v2.0)
+# Enforces §11.3 of CUP-REV-001 and Phase 20 (§20.1) of RFC CUP-2.0.
+
+import re
+import sys
+from pathlib import Path
+
+PHASE_RE   = re.compile(r"^##\s+Phase\s+(\d+):\s+(.+)$")
+SECT_RE    = re.compile(r"^###\s+(\d+)\.(\d+)\s+(.+)$")
+TABLE_RE   = re.compile(r"\b(Table\s+[A-Z0-9]+\.\d+)\b")
+ALG_CAP_RE = re.compile(r"^###+\s+.*?(Algorithm|Listing)\s+(\d+\.\d+).*?`\[(NORMATIVE|ILLUSTRATIVE)\]`")
+COMMENT_RE = re.compile(r"^\s*(?:/\*|//|#)\s*\[(NORMATIVE|ILLUSTRATIVE)\]")
+
+def lint_specification(md_path: Path) -> int:
+    lines = md_path.read_text(encoding="utf-8").splitlines()
+    errors: list[str] = []
+
+    current_phase = None
+    seen_sections: dict[str, int] = {}
+    last_subsect_by_phase: dict[int, int] = {}
+    summary_seen_in_phase: set[int] = set()
+    pending_marker: tuple[str, str, int] | None = None
+
+    for lineno, line in enumerate(lines, 1):
+        m_phase = PHASE_RE.match(line)
+        if m_phase:
+            pnum = int(m_phase.group(1))
+            if current_phase is not None and pnum != current_phase + 1:
+                errors.append(f"Line {lineno}: Out-of-order Phase {pnum} after Phase {current_phase}")
+            current_phase = pnum
+            last_subsect_by_phase[pnum] = 0
+            continue
+
+        m_sect = SECT_RE.match(line)
+        if m_sect:
+            s_phase = int(m_sect.group(1))
+            s_sub   = int(m_sect.group(2))
+            s_title = m_sect.group(3).strip()
+            sec_id  = f"{s_phase}.{s_sub}"
+
+            # 1. Prevent duplicate section numbers (CUP-ERR-010)
+            if sec_id in seen_sections:
+                errors.append(
+                    f"Line {lineno}: Duplicate section §{sec_id} (first seen at line {seen_sections[sec_id]})"
+                )
+            seen_sections[sec_id] = lineno
+
+            # 2. Prevent misplaced sections outside their phase chapter (CUP-ERR-009)
+            if current_phase is not None and s_phase != current_phase:
+                errors.append(
+                    f"Line {lineno}: Section §{sec_id} placed inside Phase {current_phase} chapter"
+                )
+
+            # 3. Prevent post-Summary substantive sections (CUP-ERR-025)
+            if s_phase in summary_seen_in_phase:
+                errors.append(
+                    f"Line {lineno}: Section §{sec_id} ('{s_title}') appears after Phase {s_phase} Summary"
+                )
+            if "Summary" in s_title and f"Phase {s_phase} Summary" in s_title:
+                summary_seen_in_phase.add(s_phase)
+
+            # 4. Prevent out-of-sequence section runs (CUP-ERR-024)
+            prev_sub = last_subsect_by_phase.get(s_phase, 0)
+            if s_sub != prev_sub + 1:
+                errors.append(
+                    f"Line {lineno}: Non-sequential section §{sec_id} (expected §{s_phase}.{prev_sub + 1})"
+                )
+            last_subsect_by_phase[s_phase] = s_sub
+
+        # 5. Enforce normative/illustrative caption & comment agreement (CUP-ERR-029)
+        m_alg = ALG_CAP_RE.match(line)
+        if m_alg:
+            kind, ident, status = m_alg.group(1), m_alg.group(2), m_alg.group(3)
+            pending_marker = (f"{kind} {ident}", status, lineno)
+        elif pending_marker is not None:
+            m_com = COMMENT_RE.match(line)
+            if m_com:
+                com_status = m_com.group(1)
+                if com_status != pending_marker[1]:
+                    errors.append(
+                        f"Line {lineno}: {pending_marker[0]} caption is [{pending_marker[1]}] "
+                        f"but code comment is [{com_status}]"
+                    )
+                pending_marker = None
+
+    if errors:
+        for e in errors:
+            print(f"[FAIL] {e}", file=sys.stderr)
+        return 1
+
+    print(f"[PASS] cup-spec-lint verified {len(seen_sections)} sections across {current_phase} phases with 0 defects.")
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(lint_specification(Path(sys.argv[1])))

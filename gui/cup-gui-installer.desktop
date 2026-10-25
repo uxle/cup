@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=CUP Package Installer
+Name[zh_CN]=CUP 软件包安装器
+GenericName=Package Installer
+Comment=Install verified CUP v3.0 universal packages
+Comment[zh_CN]=安装已验证的 CUP v3.0 通用软件包
+Exec=cup-gui-installer %f
+Icon=cup-gui-installer
+Terminal=false
+Categories=System;PackageManager;
+MimeType=application/x-cup-package;application/x-cup;
+StartupNotify=true
+NoDisplay=false

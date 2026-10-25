@@ -1,0 +1,13 @@
+[package]
+name = "cup_installer_rs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Rust CLI & C23 FFI Driver for CUP v3.0 Universal Package Installer"
+
+[[bin]]
+name = "cup-installer-rs"
+path = "src/main.rs"
+
+[dependencies]
+libcup2_rs = { path = "../libcup2_rs" }

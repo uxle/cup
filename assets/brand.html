@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CUP brand sheet</title>
+<style>
+:root{color-scheme:dark;--bg:#0B132B;--fg:#E2E8F0;--mut:#94A3B8;--card:#111C3A;--line:#263250}
+@media (prefers-color-scheme:light){:root{color-scheme:light;--bg:#F8FAFC;--fg:#0F172A;--mut:#475569;--card:#fff;--line:#E2E8F0}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 Inter, 'Segoe UI', 'Helvetica Neue', Arial, 'DejaVu Sans', sans-serif;padding:32px 16px}
+main{max-width:960px;margin:auto}h1{font-size:28px;margin:0 0 4px}h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:36px 0 12px}
+p{color:var(--mut);margin:0 0 8px}.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center}
+.card img{max-width:100%;height:auto}.card small{color:var(--mut);font:12px 'JetBrains Mono', 'DejaVu Sans Mono', Consolas, monospace}
+.sw{display:flex;gap:10px;align-items:center}.sw i{width:36px;height:36px;border-radius:10px;border:1px solid var(--line)}.sw code{color:var(--mut)}
+.row{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.mono{color:var(--fg)}
+</style><main>
+<h1>CUP brand sheet</h1><p>One mark: a package cube that is a fish. Three faces, a forked tail, an eye that doubles as a "verified" dot.</p>
+<h2>App icon &amp; mark</h2><div class="grid">
+<div class="card"><img src="cup_logo.svg" width="200" height="200" alt="App icon"><small>cup_logo.svg (512, squircle)</small></div>
+<div class="card"><img src="cup_mark.svg" width="200" alt="Mark"><small>cup_mark.svg (transparent)</small></div>
+<div class="card"><img class="mono" src="cup_mark_mono.svg" width="200" alt="Mono mark"><small>cup_mark_mono.svg (currentColor)</small></div></div>
+<h2>Lockups</h2><div class="grid"><div class="card"><img src="cup_lockup_dark.svg" alt="Dark lockup"><small>cup_lockup_dark.svg</small></div>
+<div class="card"><img src="cup_lockup_light.svg" alt="Light lockup"><small>cup_lockup_light.svg</small></div></div>
+<h2>Installer badge</h2><div class="card"><img src="cup_installer_badge.svg" alt="Badge"><small>cup_installer_badge.svg (640 x 200)</small></div>
+<h2>Small sizes (must stay readable)</h2><div class="card"><div class="row"><img src="cup_favicon.svg" width="16" height="16" alt="16px"><img src="cup_favicon.svg" width="24" height="24" alt="24px"><img src="cup_favicon.svg" width="32" height="32" alt="32px"><img src="cup_favicon.svg" width="48" height="48" alt="48px"><img src="cup_favicon.svg" width="64" height="64" alt="64px"><img src="cup_favicon.svg" width="96" height="96" alt="96px"></div><small>16 - 96 px</small></div>
+<h2>Palette</h2><div class="grid"><div class="sw"><i style="background:#5EEAD4"></i><b>Teal</b><code>#5EEAD4</code></div><div class="sw"><i style="background:#38BDF8"></i><b>Sky</b><code>#38BDF8</code></div><div class="sw"><i style="background:#818CF8"></i><b>Indigo</b><code>#818CF8</code></div><div class="sw"><i style="background:#F43F5E"></i><b>Coral</b><code>#F43F5E</code></div><div class="sw"><i style="background:#0B132B"></i><b>Navy</b><code>#0B132B</code></div><div class="sw"><i style="background:#0F172A"></i><b>Ink</b><code>#0F172A</code></div></div>
+<h2>Rules</h2><p>Clear space: at least the eye diameter on every side. Minimum size: 16 px (favicon) / 24 px (mark). Single-colour use: cup_mark_mono.svg. Never recolour the faces, stretch, or add effects.</p>
+</main></html>

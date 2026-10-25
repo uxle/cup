@@ -1,0 +1,86 @@
+================================================================================
+  CUP v3.0 (RFC CUP-3.0) Normative Conformance Test Suite Runner (400 Tests)
+================================================================================
+  Category 1  (CUP-FMT-001 .. CUP-FMT-087):  87 / 87  PASSED
+  Category 2  (CUP-HDR-001 .. CUP-HDR-024):  24 / 24  PASSED
+  Category 3  (CUP-SCT-001 .. CUP-SCT-032):  32 / 32  PASSED
+  Category 4  (CUP-MAN-001 .. CUP-MAN-041):  41 / 41  PASSED
+  Category 5  (CUP-SIG-001 .. CUP-SIG-028):  28 / 28  PASSED
+  Category 6  (CUP-MRK-001 .. CUP-MRK-022):  22 / 22  PASSED
+  Category 7  (CUP-CMP-001 .. CUP-CMP-018):  18 / 18  PASSED
+  Category 8  (CUP-DDP-001 .. CUP-DDP-015):  15 / 15  PASSED
+  Category 9  (CUP-SBX-001 .. CUP-SBX-019):  19 / 19  PASSED
+  Category 10 (CUP-CAP-001 .. CUP-CAP-017):  17 / 17  PASSED
+  Category 11 (CUP-ATM-001 .. CUP-ATM-014):  14 / 14  PASSED
+  Category 12 (CUP-UNI-001 .. CUP-UNI-012):  12 / 12  PASSED
+  Category 13 (CUP-RUN-001 .. CUP-RUN-011):  11 / 11  PASSED
+  Category 14 (CUP-CLI-001 .. CUP-CLI-010):  10 / 10  PASSED
+  Category 15 (CUP-V2X-001 .. CUP-V2X-030):  30 / 30  PASSED
+  Category 16 (CUP-V3X-001 .. CUP-V3X-020):  20 / 20  PASSED
+--------------------------------------------------------------------------------
+  Categories Executed : 16 (CUP-FMT through CUP-V3X)
+  Total Tests Run     : 400 / 400
+  Passed              : 400
+  Failed              : 0
+================================================================================
+  SECURITY HARDENING AUDIT (post-fix verification summary)
+================================================================================
+  Adversarial PoC harness (make security, ASan+UBSan) ........  9 /  9 PASSED
+    A1  CWE-190  ELF e_shoff + e_shnum*64 u64 wrap ..........  rejected, no OOB
+    A2  CWE-190  ELF SHT_DYNAMIC sh_offset+sh_size wrap .....  rejected, no OOB
+    A3  CWE-190  leaf-hash malloc(chunk_len+1) wrap .........  -CUP_E_TRUNCATED
+    A4  CWE-190  ML-DSA-65 malloc(64+msg_len) wrap ..........  -1 fail-closed
+    A5  CWE-121  chain_length=255 stack-smash pattern .......  capped at 8
+    A6  CWE-835  watchdog ECHILD busy-spin ..................  instant return
+    A7  CWE-20   D-Bus 'g' length jump ......................  -EINVAL
+    A8  Correct. BLAKE3-256 KAT + chunk chaining ............  KAT match
+    A9  CWE-770  out-of-spec file_len before allocation .....  -CUP_E_TRUNCATED
+
+  End-to-end malicious .cup regressions (cup-installer verify):
+    chain_length=255 forged section .........................  clean rejection
+    chain_length=9 forged section ...........................  clean rejection
+    2 GiB sparse zero file ..................................  clean rejection
+    10 TiB sparse file (bad_alloc guard) ....................  clean rejection
+
+  Real behavioral sandbox tests (CUP-SBX category, fork-isolated):
+    seccomp tier-0 install (PR_SET_NO_NEW_PRIVS + TSYNC) ....  PASSED
+    __NR_bpf KILL_PROCESS enforcement .......................  SIGSYS observed
+    tier-0 default-deny ioctl -> ENOSYS .....................  PASSED
+    tier-1 non-TIOCSTI ioctl allowed .......................  PASSED
+    TIOCSTI terminal injection -> EPERM ....................  PASSED
+    gui-wayland AF_UNIX allowed / AF_INET ENETDOWN .........  PASSED
+
+  Cross-language consistency:
+    FastCDC Gear table: Python hashlib recompute ............ 256 / 256 match
+    BLAKE3-256: independent from-spec reference ............. 236 / 236 lengths
+    JCS manifest: C++ slice dedup aligned with Rust .........  PASSED
+
+  Build hygiene:
+    -Wall -Wextra -Werror -Wshadow -Wformat=2
+    -fstack-protector-strong -D_FORTIFY_SOURCE=2 ............  zero warnings
+    400-test suite under ASan + UBSan .......................  zero reports
+================================================================================
+[PASS] cup-spec-lint verified 90 sections across 20 phases with 0 defects.
+[PASS] pycup-ffi: header pack/validate + 256/256 Gear entries + BLAKE3 KAT
+[PASS] blake3_crossval: C implementation matches independent reference on all
+       236 tested lengths (0..16384, all chunk-boundary tree shapes)
+
+================================================================================
+  ADDENDUM - independent verification of the IMPROVED suite
+================================================================================
+  CLI end-to-end tests (tests/cli_tests.py, make test) ......  57 / 57 PASSED
+    UX contract, build+verify, attacks, forgeries, deploy (install/upgrade/
+    rollback/downgrade/dry-run/crash-rollback/--json)
+  Mutation sweep under ASan+UBSan (make fuzz) ...............  17,571 mutants
+    accepted: 0   crashed: 0   (raw + re-sealed byte flips, truncations,
+    targeted structural attacks, header-flag / sig_alg downgrade, stub swap)
+  Independent forgeries (tests/cli_tests.py::Forgeries) .....  all rejected
+    namespace decoy, missing id, duplicate JSON keys, flags mismatch
+  Rust workspace (cargo build --release && cargo test) ......  PASSED
+  GUI backend selftest vs new cup-cli (stale binary) ........  52 checks; the
+    only mismatch was the hard-coded "6 sections" (v3 packages now carry the
+    ELF stub = 7); selftest.cpp updated to accept 6 or 7. Needs `make gui`.
+  NOTE: 400 conformance tests are ~40 distinct assertions repeated; the
+  CUP-CLI category does not exercise the CLI. tests/cli_tests.py is the real
+  CLI coverage.
+================================================================================

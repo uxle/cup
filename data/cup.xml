@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-cup-package">
+    <comment>CuteFish Universal Package</comment>
+    <comment xml:lang="zh_CN">CuteFish 通用软件包</comment>
+    <acronym>CUP</acronym>
+    <expanded-acronym>CuteFish Universal Package</expanded-acronym>
+    <generic-icon name="application-x-cup"/>
+    <glob pattern="*.cup"/>
+    <magic priority="90">
+      <match type="string" offset="0" value="CUP3"/>
+      <match type="string" offset="0" value="CUP2"/>
+      <match type="string" offset="0" value="CUP1"/>
+    </magic>
+  </mime-type>
+  <mime-type type="application/x-cup">
+    <alias type="application/x-cup-package"/>
+  </mime-type>
+</mime-info>

@@ -1,0 +1,377 @@
+#!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 CuteFish Universal Package contributors
+# SPDX-License-Identifier: BSD-3-Clause
+set -euo pipefail
+
+VERSION="3.0.0"
+CUP_BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CUP_CLI="${CUP_BIN_DIR}/cup-cli"
+if [ ! -x "${CUP_CLI}" ]; then
+    CUP_CLI="$(command -v cup-cli || true)"
+fi
+
+CUP_GUI="${CUP_BIN_DIR}/cup-gui-installer"
+if [ ! -x "${CUP_GUI}" ]; then
+    CUP_GUI="$(command -v cup-gui-installer || true)"
+fi
+
+# Determine storage roots
+if [ "$(id -u)" -eq 0 ]; then
+    DEFAULT_INSTALL_BASE="/var/lib/cup/apps"
+    DEFAULT_BIN_DIR="/usr/local/bin"
+    DEFAULT_DESKTOP_DIR="/usr/share/applications"
+    DEFAULT_ICON_DIR="/usr/share/icons/hicolor/scalable/apps"
+else
+    DEFAULT_INSTALL_BASE="${XDG_DATA_HOME:-$HOME/.local/share}/cup/apps"
+    DEFAULT_BIN_DIR="${HOME}/.local/bin"
+    DEFAULT_DESKTOP_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+    DEFAULT_ICON_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/scalable/apps"
+fi
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/cup"
+
+show_help() {
+    cat << 'EOF'
+CuteFish Universal Package (CUP v3.0) — Next-Generation Linux Application Runtime
+
+Usage:
+  cup <command> [arguments...]
+  cup <package.cup> [app arguments...]
+
+Commands:
+  run <pkg.cup|app-id> [args...]  Directly launch a CUP app or package
+  install <pkg.cup>               Install a CUP package into the system
+  uninstall <app-id>              Uninstall an installed CUP package
+  list                            List all installed CUP applications
+  verify <pkg.cup>                Cryptographically verify package signature & Merkle tree
+  inspect <pkg.cup>               Inspect container sections and signed manifest
+  build <out.cup> [options]       Build a new sealed CUP container
+  gui [pkg.cup]                   Launch graphical CUP package installer
+  help [command]                  Show help information
+  version                         Display CUP suite version
+
+Direct Execution:
+  Any .cup package can be executed directly from terminal or file manager:
+    chmod +x myapp.cup && ./myapp.cup
+
+EOF
+}
+
+cmd_version() {
+    echo "CUP (CuteFish Universal Package) ${VERSION} (RFC CUP-3.0)"
+    if [ -x "${CUP_CLI}" ]; then
+        "${CUP_CLI}" --version 2>/dev/null || true
+    fi
+}
+
+cmd_run() {
+    if [ $# -lt 1 ]; then
+        echo "Error: cup run requires a package file (.cup) or an installed app-id" >&2
+        exit 2
+    fi
+
+    local target="$1"
+    shift || true
+
+    # Check if target is a file or app-id
+    if [ -f "${target}" ]; then
+        local pkg_path
+        pkg_path="$(realpath "${target}")"
+        
+        # Compute SHA256 of package for execution cache
+        local pkg_hash
+        pkg_hash="$(sha256sum "${pkg_path}" | awk '{print $1}')"
+        local run_root="${CACHE_DIR}/run/${pkg_hash}"
+        local active_dir="${run_root}/active"
+
+        if [ ! -d "${active_dir}" ]; then
+            mkdir -p "${run_root}"
+            echo "==> Verifying and staging ${pkg_path##*/}..." >&2
+            if [ -x "${CUP_CLI}" ]; then
+                "${CUP_CLI}" install "${pkg_path}" --root "${run_root}" >&2
+            else
+                echo "Error: cup-cli not found" >&2
+                exit 1
+            fi
+        fi
+
+        # Find executable payload
+        local bin_file=""
+        if [ -d "${active_dir}/cas" ]; then
+            bin_file="$(find "${active_dir}/cas" -type f -executable | head -n 1 || true)"
+            if [ -z "${bin_file}" ]; then
+                bin_file="$(find "${active_dir}/cas" -type f | head -n 1 || true)"
+                if [ -n "${bin_file}" ]; then
+                    chmod +x "${bin_file}"
+                fi
+            fi
+        fi
+
+        if [ -n "${bin_file}" ] && [ -x "${bin_file}" ]; then
+            exec "${bin_file}" "$@"
+        else
+            echo "Error: Unable to locate runnable executable in ${pkg_path##*/}" >&2
+            exit 1
+        fi
+    else
+        # Target is an app-id (e.g. org.cutefish.Calculator)
+        local app_id="${target}"
+        local installed_root=""
+        for base in "${DEFAULT_INSTALL_BASE}" "/var/lib/cup/apps" "${HOME}/.local/share/cup/apps"; do
+            if [ -d "${base}/${app_id}/active" ]; then
+                installed_root="${base}/${app_id}/active"
+                break
+            fi
+        done
+
+        if [ -z "${installed_root}" ]; then
+            echo "Error: App '${app_id}' is not installed." >&2
+            echo "Run 'cup list' to view installed applications." >&2
+            exit 1
+        fi
+
+        local bin_file="$(find "${installed_root}/cas" -type f -executable | head -n 1 || true)"
+        if [ -n "${bin_file}" ] && [ -x "${bin_file}" ]; then
+            exec "${bin_file}" "$@"
+        else
+            echo "Error: Executable for '${app_id}' not found." >&2
+            exit 1
+        fi
+    fi
+}
+
+cmd_install() {
+    if [ $# -lt 1 ]; then
+        echo "Error: cup install requires a package file (.cup)" >&2
+        exit 2
+    fi
+
+    local pkg_path
+    pkg_path="$(realpath "$1")"
+    if [ ! -f "${pkg_path}" ]; then
+        echo "Error: File not found: ${pkg_path}" >&2
+        exit 1
+    fi
+
+    # Read manifest using cup-cli inspect
+    echo "==> Inspecting package..."
+    local inspect_json
+    inspect_json="$("${CUP_CLI}" inspect "${pkg_path}" --json 2>/dev/null || true)"
+    
+    local app_id=""
+    local app_ver=""
+    if [ -n "${inspect_json}" ]; then
+        app_id="$(echo "${inspect_json}" | grep -o '"id"[[:space:]]*:[[:space:]]*"[^"]*"' | head -n 1 | cut -d'"' -f4 || true)"
+        app_ver="$(echo "${inspect_json}" | grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' | head -n 1 | cut -d'"' -f4 || true)"
+    fi
+
+    if [ -z "${app_id}" ]; then
+        app_id="${pkg_path##*/}"
+        app_id="${app_id%%.*}"
+    fi
+    if [ -z "${app_ver}" ]; then
+        app_ver="1.0.0"
+    fi
+
+    local app_root="${DEFAULT_INSTALL_BASE}/${app_id}"
+    echo "==> Installing ${app_id} (${app_ver}) into ${app_root}..."
+    mkdir -p "${app_root}" "${DEFAULT_BIN_DIR}" "${DEFAULT_DESKTOP_DIR}" "${DEFAULT_ICON_DIR}"
+
+    "${CUP_CLI}" install "${pkg_path}" --root "${app_root}"
+
+    # Locate binary payload in active/cas
+    local active_dir="${app_root}/active"
+    local bin_file="$(find "${active_dir}/cas" -type f | head -n 1 || true)"
+    if [ -z "${bin_file}" ]; then
+        echo "Error: No payload found in package" >&2
+        exit 1
+    fi
+    chmod +x "${bin_file}"
+
+    # Determine friendly executable name (e.g. org.cutefish.Calculator -> cutefish-calculator)
+    local short_name="${app_id##*.}"
+    local lower_short="$(echo "${short_name}" | tr '[:upper:]' '[:lower:]')"
+    local cmd_name="cup-${lower_short}"
+    
+    # Create command symlink
+    ln -sf "${bin_file}" "${DEFAULT_BIN_DIR}/${cmd_name}"
+    ln -sf "${bin_file}" "${DEFAULT_BIN_DIR}/${lower_short}" 2>/dev/null || true
+
+    # Create desktop entry
+    local desktop_file="${DEFAULT_DESKTOP_DIR}/${app_id}.desktop"
+    local app_title="${short_name}"
+    cat << DESKTOP_EOF > "${desktop_file}"
+[Desktop Entry]
+Type=Application
+Name=${app_title}
+Comment=CUP Application: ${app_id}
+Exec=${DEFAULT_BIN_DIR}/${cmd_name} %U
+Icon=${app_id}
+Terminal=false
+Categories=Utility;
+X-CUP-PackageId=${app_id}
+X-CUP-Version=${app_ver}
+StartupNotify=true
+DESKTOP_EOF
+
+    # Copy / install icon if icon exists
+    if [ -f "${CUP_BIN_DIR}/../assets/cup_logo.svg" ]; then
+        cp -f "${CUP_BIN_DIR}/../assets/cup_logo.svg" "${DEFAULT_ICON_DIR}/${app_id}.svg" 2>/dev/null || true
+    fi
+
+    # Update desktop and icon databases
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database "${DEFAULT_DESKTOP_DIR}" >/dev/null 2>&1 || true
+    fi
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+        gtk-update-icon-cache -q -f -t "${DEFAULT_ICON_DIR}/../../" >/dev/null 2>&1 || true
+    fi
+
+    echo "==> Successfully installed ${app_id}!"
+    echo "    Run command: ${cmd_name}"
+    echo "    Desktop launcher: ${desktop_file}"
+}
+
+cmd_list() {
+    echo "Installed CUP Applications:"
+    printf "  %-32s %-12s %-20s %s\n" "APPLICATION ID" "VERSION" "COMMAND" "INSTALL PATH"
+    printf "  %-32s %-12s %-20s %s\n" "--------------------------------" "------------" "--------------------" "--------------------------------"
+
+    local found=0
+    for base in "${DEFAULT_INSTALL_BASE}" "/var/lib/cup/apps" "${HOME}/.local/share/cup/apps"; do
+        if [ -d "${base}" ]; then
+            for d in "${base}"/*; do
+                if [ -d "${d}/active" ]; then
+                    local id="${d##*/}"
+                    local ver="unknown"
+                    if [ -f "${d}/active/manifest.json" ]; then
+                        ver="$(grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' "${d}/active/manifest.json" | head -n 1 | cut -d'"' -f4 || echo "unknown")"
+                    fi
+                    local short="${id##*.}"
+                    local lower="$(echo "${short}" | tr '[:upper:]' '[:lower:]')"
+                    printf "  %-32s %-12s %-20s %s\n" "${id}" "${ver}" "cup-${lower}" "${d}"
+                    found=$((found + 1))
+                fi
+            done
+        fi
+    done
+
+    if [ ${found} -eq 0 ]; then
+        echo "  (No CUP applications currently installed)"
+        echo "  Install one using: cup install <package.cup>"
+    fi
+    echo ""
+}
+
+cmd_uninstall() {
+    if [ $# -lt 1 ]; then
+        echo "Error: cup uninstall requires an app-id" >&2
+        exit 2
+    fi
+    local app_id="$1"
+    local removed=0
+
+    for base in "${DEFAULT_INSTALL_BASE}" "/var/lib/cup/apps" "${HOME}/.local/share/cup/apps"; do
+        if [ -d "${base}/${app_id}" ]; then
+            rm -rf "${base}/${app_id}"
+            removed=1
+        fi
+    done
+
+    for ddir in "${DEFAULT_DESKTOP_DIR}" "/usr/share/applications" "${HOME}/.local/share/applications"; do
+        rm -f "${ddir}/${app_id}.desktop"
+    done
+
+    local short="${app_id##*.}"
+    local lower="$(echo "${short}" | tr '[:upper:]' '[:lower:]')"
+    for bdir in "${DEFAULT_BIN_DIR}" "/usr/local/bin" "${HOME}/.local/bin"; do
+        rm -f "${bdir}/cup-${lower}"
+    done
+
+    if [ ${removed} -eq 1 ]; then
+        echo "==> Successfully uninstalled ${app_id}."
+        if command -v update-desktop-database >/dev/null 2>&1; then
+            update-desktop-database "${DEFAULT_DESKTOP_DIR}" >/dev/null 2>&1 || true
+        fi
+    else
+        echo "Error: App '${app_id}' was not found in installed applications." >&2
+        exit 1
+    fi
+}
+
+cmd_gui() {
+    if [ -x "${CUP_GUI}" ]; then
+        exec "${CUP_GUI}" "$@"
+    else
+        echo "Error: cup-gui-installer not found or not executable" >&2
+        exit 1
+    fi
+}
+
+# ---------------------------------------------------------
+# Dispatch CLI or Direct Execution
+# ---------------------------------------------------------
+if [ $# -eq 0 ]; then
+    show_help
+    exit 0
+fi
+
+# If invoked by kernel binfmt_misc with 'P' flag, $1 is binary path and $2 is argv[0]
+if [ $# -ge 2 ] && [ -f "$1" ] && [ "$1" = "$2" ]; then
+    shift
+fi
+
+# Direct file execution check: if argument is a .cup file
+if [ -f "$1" ] && [[ "$1" == *.cup ]]; then
+    cmd_run "$@"
+    exit 0
+fi
+
+# Subcommand routing
+subcmd="$1"
+shift || true
+
+case "${subcmd}" in
+    run)
+        cmd_run "$@"
+        ;;
+    install)
+        cmd_install "$@"
+        ;;
+    remove|uninstall)
+        cmd_uninstall "$@"
+        ;;
+    list)
+        cmd_list "$@"
+        ;;
+    gui)
+        cmd_gui "$@"
+        ;;
+    verify)
+        exec "${CUP_CLI}" verify "$@"
+        ;;
+    inspect)
+        exec "${CUP_CLI}" inspect "$@"
+        ;;
+    build)
+        exec "${CUP_CLI}" build "$@"
+        ;;
+    version|--version|-v)
+        cmd_version
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        # If it's a file with CUP magic, run it directly
+        if [ -f "${subcmd}" ]; then
+            magic="$(head -c 4 "${subcmd}" 2>/dev/null || true)"
+            if [ "${magic}" = "CUP3" ] || [ "${magic}" = "CUP2" ] || [ "${magic}" = "CUP1" ]; then
+                cmd_run "${subcmd}" "$@"
+                exit 0
+            fi
+        fi
+        echo "Unknown command: ${subcmd}" >&2
+        show_help
+        exit 2
+        ;;
+esac

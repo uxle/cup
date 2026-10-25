@@ -1,0 +1,31 @@
+# Build artifacts
+*.o
+*.a
+*.so
+*.so.*
+bin/cup-cli
+bin/cup-installer
+bin/cup-builder
+bin/cup-stub
+bin/cup-conformance
+bin/hostile_tests
+build/
+build_asan/
+gui/build/
+debian_pkg/
+dist/
+*.deb
+*.tar.gz
+*.tar.xz
+
+# Temporary and test artifacts
+*.log
+/tmp/
+__pycache__/
+*.py[cod]
+.qmake.stash
+
+# IDE and OS files
+.DS_Store
+.vscode/
+.idea/

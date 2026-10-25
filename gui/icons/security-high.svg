@@ -1,0 +1,16 @@
+<svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+ <!-- Cutefish-style shield-with-check (security high). -->
+ <defs>
+  <linearGradient id="g" x1="12" y1="6" x2="52" y2="58" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#2ED573" offset="0"/>
+   <stop stop-color="#1FA955" offset="1"/>
+  </linearGradient>
+  <filter id="s" x="-.06" y="-.06" width="1.12" height="1.12" color-interpolation-filters="sRGB">
+   <feGaussianBlur stdDeviation="1"/>
+  </filter>
+ </defs>
+ <path transform="translate(0,1.5)" d="m32 7 20 7v15c0 12.5-7.8 20.9-20 27-12.2-6.1-20-14.5-20-27v-15z" fill="#000" filter="url(#s)" opacity=".12"/>
+ <path d="m32 6 20 7v15c0 12.5-7.8 20.9-20 27-12.2-6.1-20-14.5-20-27v-15z" fill="url(#g)"/>
+ <path d="m32 8.4 17.5 6.1v13.5c0 11-6.8 18.4-17.5 24-10.7-5.6-17.5-13-17.5-24v-13.5z" fill="#fff" opacity=".14"/>
+ <path d="m24.2 31.8 5.4 5.4 10.2-10.2" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
