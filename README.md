@@ -34,7 +34,7 @@
 
 ## Graphical Installer
 
-The Qt5/QML graphical installer provides a streamlined, icon-first installation flow:
+The graphical installer is built natively with the **Cutefish Toolkit** (`cutefish-toolkit`, Skia + Wayland), delivering a fluid, modern, icon-first desktop installation experience with minimal text and maximum icons:
 
 <p align="center">
   <img src="docs/screenshots/home.png" width="30%" alt="Home Page" />
@@ -51,7 +51,7 @@ cup/
 ├── bin/                       # Core tools and unified launcher
 │   ├── cup                    # High-level CLI & direct application runner
 │   ├── cup-cli                # Low-level CLI interface
-│   ├── cup-gui-installer      # Graphical package installer (Qt5/QML)
+│   ├── cup-gui-installer      # Graphical package installer (Cutefish Toolkit)
 │   ├── cup-builder            # Container builder
 │   ├── cup-installer          # Core installation backend
 │   └── cup-stub               # 8.8 KiB freestanding ELF64 bootstrapper
@@ -61,10 +61,10 @@ cup/
 │   ├── cup_abi_solver.hpp     # Dynamic library ABI solver
 │   ├── cup_abi_solver.cpp     # ABI solver implementation
 │   └── cup_stub.c             # Zero-dependency bootstrap loader
-├── gui/                       # Minimalist Qt5/QML graphical installer
-│   ├── src/                   # C++ QObject backend & self-tests
-│   ├── qml/                   # QML user interface (HomePage, AppPage, InstallPage)
-│   └── icons/                 # Vector SVG assets
+├── gui/                       # Native Cutefish Toolkit graphical installer
+│   ├── src/                   # C++20 Cutefish Toolkit views & self-tests
+│   ├── cmake/                 # Icon embedding toolchain (EmbedIcons.cmake)
+│   └── icons/                 # Embedded vector SVG icons
 ├── assets/                    # Official CUP vector brand assets & logos
 │   ├── cup_logo.svg           # Application squircle logo
 │   ├── cup_mark.svg           # Transparent brand mark

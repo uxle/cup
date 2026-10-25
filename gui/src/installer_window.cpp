@@ -4,6 +4,9 @@
 #include "installer_window.h"
 #include "icons.h"
 
+#include "ui/painter.h"
+#include "ui/application.h"
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -35,6 +38,36 @@ std::string getBaseName(const std::string& path) {
     return p.stem().string();
 }
 
+std::string resolveIconPath(const std::string& name) {
+    std::vector<std::string> candidates = {
+        "gui/icons/" + name,
+        "icons/" + name,
+        "../icons/" + name,
+        "/usr/share/icons/hicolor/scalable/mimetypes/" + name,
+        "/usr/share/icons/hicolor/scalable/apps/" + name
+    };
+    for (const auto& path : candidates) {
+        if (std::filesystem::exists(path)) {
+            return path;
+        }
+    }
+    std::string stem = name;
+    size_t dot = stem.rfind('.');
+    if (dot != std::string::npos) stem = stem.substr(0, dot);
+
+    for (const auto& [entryName, svg] : embeddedIcons()) {
+        if (entryName == stem || entryName == name) {
+            std::string tmp = "/tmp/cup_icon_" + stem + ".svg";
+            if (!std::filesystem::exists(tmp)) {
+                std::ofstream out(tmp, std::ios::binary);
+                out.write(svg.data(), svg.size());
+            }
+            return tmp;
+        }
+    }
+    return "";
+}
+
 bool extractJsonField(const std::string& json, const std::string& key, std::string& out) {
     std::string needle = "\"" + key + "\"";
     size_t pos = json.find(needle);
@@ -59,7 +92,6 @@ public:
     explicit HomeView(InstallerWindow* owner)
         : m_owner(owner)
         , m_dropArea(addChild<FileDropArea>())
-        , m_icon(addChild<Icon>("cup", 64))
         , m_title(addChild<Label>("CuteFish Universal Package"))
         , m_subtitle(addChild<Label>("Drag and drop a .cup package here"))
         , m_chooseBtn(addChild<DialogButton>("Choose Package", true))
@@ -94,16 +126,16 @@ public:
             requestPaint();
         };
 
-        // Pills styling
-        m_secIcon->setColor(accent::blue);
+        // Feature pills styling
+        m_secIcon->setColor(ColorRecipe(accent::blue));
         m_secLabel->setFontSize(11);
         m_secLabel->setWeight(500);
 
-        m_zeroIcon->setColor(accent::blue);
+        m_zeroIcon->setColor(ColorRecipe(accent::blue));
         m_zeroLabel->setFontSize(11);
         m_zeroLabel->setWeight(500);
 
-        m_sandIcon->setColor(accent::green);
+        m_sandIcon->setColor(ColorRecipe(accent::green));
         m_sandLabel->setFontSize(11);
         m_sandLabel->setWeight(500);
     }
@@ -115,20 +147,19 @@ protected:
 
         m_dropArea->setGeometry({0, 0, w, h});
 
-        // Drop card box: 412 wide x 310 high, centered
+        // Drop card box: 412 wide x 290 high, centered
         const double cardW = std::min(412.0, w - 48.0);
         const double cardX = (w - cardW) / 2.0;
         const double cardY = 24.0;
 
-        m_icon->setGeometry({(w - 64.0) / 2.0, cardY + 40.0, 64.0, 64.0});
         m_title->setGeometry({cardX + 16.0, cardY + 120.0, cardW - 32.0, 24.0});
-        m_subtitle->setGeometry({cardX + 16.0, cardY + 150.0, cardW - 32.0, 20.0});
+        m_subtitle->setGeometry({cardX + 16.0, cardY + 148.0, cardW - 32.0, 20.0});
 
         const double btnW = 160.0;
         m_chooseBtn->setGeometry({(w - btnW) / 2.0, cardY + 195.0, btnW, 36.0});
 
         // Bottom 3 pills row: centered
-        const double pillY = cardY + 310.0 + 30.0;
+        const double pillY = cardY + 290.0 + 36.0;
         const double pillW = 115.0;
         const double gap = 12.0;
         const double totalPillsW = 3 * pillW + 2 * gap;
@@ -160,13 +191,20 @@ protected:
 
         // 1. Drop Zone card background
         Color cardBg = theme.secondBackground;
-        Color borderCol = m_dropArea->containsDrag() ? accent::blue : Color::rgba(128, 128, 128, 0.25);
-        double borderW = m_dropArea->containsDrag() ? 2.0 : 1.0;
+        Color borderCol = m_dropArea->containsDrag() ? accent::blue : Color::fromArgb(0x33808080);
+        int borderW = m_dropArea->containsDrag() ? 2 : 1;
 
-        painter.drawRoundedRect({cardX, cardY, cardW, cardH}, RoundedShape{14.0}, cardBg, borderW, borderCol);
+        painter.fillRoundedRect({cardX, cardY, cardW, cardH}, 14.0, cardBg);
+        painter.strokeRoundedRect({cardX, cardY, cardW, cardH}, 14.0, borderCol, borderW);
+
+        // Render multi-color CUP logo centered in the card
+        std::string iconPath = resolveIconPath("application-x-cup.svg");
+        if (!iconPath.empty()) {
+            painter.drawSvg(iconPath, {(w - 72.0) / 2.0, cardY + 36.0, 72.0, 72.0});
+        }
 
         // 2. Feature pills background
-        const double pillY = cardY + cardH + 40.0;
+        const double pillY = cardY + cardH + 36.0;
         const double pillW = 115.0;
         const double gap = 12.0;
         const double totalPillsW = 3 * pillW + 2 * gap;
@@ -181,7 +219,6 @@ protected:
 private:
     InstallerWindow* m_owner;
     FileDropArea* m_dropArea;
-    Icon* m_icon;
     Label* m_title;
     Label* m_subtitle;
     DialogButton* m_chooseBtn;
@@ -200,7 +237,6 @@ class InstallerWindow::AppView : public View {
 public:
     explicit AppView(InstallerWindow* owner)
         : m_owner(owner)
-        , m_appIcon(addChild<Icon>("application-x-cup", 48))
         , m_nameLabel(addChild<Label>())
         , m_idLabel(addChild<Label>())
         , m_versionBadge(addChild<Label>())
@@ -237,18 +273,18 @@ public:
         m_formatLabel->setFontSize(11);
         m_formatLabel->setWeight(500);
 
-        m_trustIcon->setColor(accent::green);
+        m_trustIcon->setColor(ColorRecipe(accent::green));
         m_trustLabel->setFontSize(11);
         m_trustLabel->setWeight(600);
-        m_trustLabel->setColor(accent::green);
+        m_trustLabel->setColor(ColorRecipe(accent::green));
 
-        m_chkMerkleIcon->setColor(accent::green);
+        m_chkMerkleIcon->setColor(ColorRecipe(accent::green));
         m_chkMerkle->setFontSize(12);
 
-        m_chkErofsIcon->setColor(accent::green);
+        m_chkErofsIcon->setColor(ColorRecipe(accent::green));
         m_chkErofs->setFontSize(12);
 
-        m_chkSignIcon->setColor(accent::green);
+        m_chkSignIcon->setColor(ColorRecipe(accent::green));
         m_chkSign->setFontSize(12);
 
         m_cancelBtn->onClicked = [this]() {
@@ -279,10 +315,9 @@ protected:
 
         // 1. Identity Card
         const double cardY = 16.0;
-        m_appIcon->setGeometry({cardX + 16.0, cardY + 22.0, 48.0, 48.0});
-        m_nameLabel->setGeometry({cardX + 76.0, cardY + 16.0, cardW - 90.0, 24.0});
-        m_idLabel->setGeometry({cardX + 76.0, cardY + 42.0, cardW - 90.0, 18.0});
-        m_versionBadge->setGeometry({cardX + 76.0, cardY + 62.0, cardW - 90.0, 18.0});
+        m_nameLabel->setGeometry({cardX + 78.0, cardY + 16.0, cardW - 90.0, 24.0});
+        m_idLabel->setGeometry({cardX + 78.0, cardY + 42.0, cardW - 90.0, 18.0});
+        m_versionBadge->setGeometry({cardX + 78.0, cardY + 62.0, cardW - 90.0, 18.0});
 
         // 2. Stat Pills
         const double pillY = cardY + 105.0;
@@ -301,7 +336,7 @@ protected:
         m_trustLabel->setGeometry({cardX + 2 * pillW + 34.0, pillY + 6.0, pillW - 28.0, 18.0});
 
         // 3. Security Checks Container
-        const double secY = pillY + 54.0;
+        const double secY = pillY + 46.0;
         m_chkMerkleIcon->setGeometry({cardX + 16.0, secY + 14.0, 16.0, 16.0});
         m_chkMerkle->setGeometry({cardX + 42.0, secY + 12.0, cardW - 56.0, 20.0});
 
@@ -326,6 +361,12 @@ protected:
         // 1. Identity card
         painter.fillRoundedRect({cardX, 16.0, cardW, 90.0}, 14.0, theme.secondBackground);
 
+        // App Icon
+        std::string iconPath = resolveIconPath("application-x-cup.svg");
+        if (!iconPath.empty()) {
+            painter.drawSvg(iconPath, {cardX + 16.0, 16.0 + 19.0, 52.0, 52.0});
+        }
+
         // 2. Stat badges (3 items)
         const double pillY = 16.0 + 105.0;
         const double pillW = (cardW - 16.0) / 3.0;
@@ -340,7 +381,6 @@ protected:
 
 private:
     InstallerWindow* m_owner;
-    Icon* m_appIcon;
     Label* m_nameLabel;
     Label* m_idLabel;
     Label* m_versionBadge;
@@ -367,7 +407,6 @@ class InstallerWindow::InstallView : public View {
 public:
     explicit InstallView(InstallerWindow* owner)
         : m_owner(owner)
-        , m_icon(addChild<Icon>("cup", 64))
         , m_title(addChild<Label>("Installing Application..."))
         , m_subtitle(addChild<Label>("Verifying Merkle root and deploying EROFS container"))
         , m_progressBar(addChild<ProgressBar>())
@@ -388,7 +427,7 @@ public:
             m_owner->setPage(Page::Home);
         };
         m_closeBtn->onClicked = [this]() {
-            m_owner->window().close();
+            ::exit(0);
         };
 
         m_doneBtn->setVisible(false);
@@ -396,9 +435,8 @@ public:
     }
 
     void updateState(InstallState st, const PackageInfo& pkg) {
+        m_state = st;
         if (st == InstallState::Installing) {
-            m_icon->setIconName("cup");
-            m_icon->setColor(std::nullopt);
             m_title->setText("Installing " + (pkg.name.empty() ? "Application" : pkg.name) + "...");
             m_subtitle->setText("Verifying Merkle root and deploying container");
             m_progressBar->setVisible(true);
@@ -406,16 +444,12 @@ public:
             m_doneBtn->setVisible(false);
             m_closeBtn->setVisible(false);
         } else if (st == InstallState::Succeeded) {
-            m_icon->setIconName("check-circle");
-            m_icon->setColor(accent::green);
             m_title->setText("Installation Succeeded!");
             m_subtitle->setText((pkg.name.empty() ? "Package" : pkg.name) + " is installed and ready to launch.");
             m_progressBar->setVisible(false);
             m_doneBtn->setVisible(true);
             m_closeBtn->setVisible(false);
         } else if (st == InstallState::Failed) {
-            m_icon->setIconName("security-low");
-            m_icon->setColor(accent::red);
             m_title->setText("Installation Failed");
             m_subtitle->setText(pkg.error.empty() ? "Verification or staging error occurred." : pkg.error);
             m_progressBar->setVisible(false);
@@ -431,7 +465,6 @@ protected:
         const double w = geometry().width;
         const double h = geometry().height;
 
-        m_icon->setGeometry({(w - 64.0) / 2.0, 70.0, 64.0, 64.0});
         m_title->setGeometry({20.0, 160.0, w - 40.0, 26.0});
         m_subtitle->setGeometry({20.0, 192.0, w - 40.0, 20.0});
 
@@ -443,14 +476,69 @@ protected:
         m_closeBtn->setGeometry({(w - btnW) / 2.0, h - 80.0, btnW, 36.0});
     }
 
+    void paint(Painter& painter) override {
+        const double w = geometry().width;
+        const double cx = w / 2.0;
+        const double cy = 70.0 + 32.0;
+
+        if (m_state == InstallState::Installing) {
+            std::string iconPath = resolveIconPath("application-x-cup.svg");
+            if (!iconPath.empty()) {
+                painter.drawSvg(iconPath, {(w - 64.0) / 2.0, 70.0, 64.0, 64.0});
+            }
+        } else if (m_state == InstallState::Succeeded) {
+            // Draw green circle
+            painter.fillEllipse({cx - 32.0, cy - 32.0, 64.0, 64.0}, accent::green);
+
+            // Draw crisp white checkmark path
+            Path p;
+            p.moveTo({cx - 13.0, cy});
+            p.lineTo({cx - 4.0, cy + 9.0});
+            p.lineTo({cx + 14.0, cy - 9.0});
+            painter.strokePath(p, Color::rgb(0xFFFFFF), 4.0, LineCap::Round, LineJoin::Round);
+        } else if (m_state == InstallState::Failed) {
+            // Draw red circle
+            painter.fillEllipse({cx - 32.0, cy - 32.0, 64.0, 64.0}, accent::red);
+
+            // Draw white cross
+            Path p;
+            p.moveTo({cx - 10.0, cy - 10.0});
+            p.lineTo({cx + 10.0, cy + 10.0});
+            p.moveTo({cx + 10.0, cy - 10.0});
+            p.lineTo({cx - 10.0, cy + 10.0});
+            painter.strokePath(p, Color::rgb(0xFFFFFF), 4.0, LineCap::Round, LineJoin::Round);
+        }
+    }
+
 private:
     InstallerWindow* m_owner;
-    Icon* m_icon;
+    InstallState m_state = InstallState::Idle;
     Label* m_title;
     Label* m_subtitle;
     ProgressBar* m_progressBar;
     DialogButton* m_doneBtn;
     DialogButton* m_closeBtn;
+};
+
+// ============================================================================
+// Header Title Component
+// ============================================================================
+class HeaderTitleView : public View {
+public:
+    explicit HeaderTitleView(const std::string& title)
+        : m_label(addChild<Label>(title))
+    {
+        m_label->setFontSize(13);
+        m_label->setWeight(600);
+        m_label->setVerticallyCentered(true);
+    }
+    void setText(const std::string& text) { m_label->setText(text); }
+protected:
+    void layout() override {
+        m_label->setGeometry({12.0, 0.0, geometry().width - 12.0, geometry().height});
+    }
+private:
+    Label* m_label;
 };
 
 // ============================================================================
@@ -462,14 +550,14 @@ public:
         : m_owner(owner)
         , header(addChild<WindowHeader>(HeaderHeight))
     {
-        header->setTitle("CUP Package Installer");
         header->setMaximizeVisible(false);
-        header->closeButton()->onClicked = [this]() {
-            m_owner->window().close();
-        };
-        header->minimizeButton()->onClicked = [this]() {
-            m_owner->window().minimize();
-        };
+        auto titleView = std::make_unique<HeaderTitleView>("CUP Package Installer");
+        m_titleView = titleView.get();
+        header->setContentView(std::move(titleView));
+    }
+
+    void setTitle(const std::string& title) {
+        if (m_titleView) m_titleView->setText(title);
     }
 
     WindowHeader* header;
@@ -489,6 +577,7 @@ protected:
 
 private:
     InstallerWindow* m_owner;
+    HeaderTitleView* m_titleView = nullptr;
 };
 
 // ============================================================================
@@ -497,7 +586,7 @@ private:
 InstallerWindow::InstallerWindow(bool headless)
     : m_headless(headless)
 {
-    m_window.setGeometry({100, 100, WindowWidth, WindowHeight});
+    m_window.resize(SizeF{WindowWidth, WindowHeight});
     m_window.setTitle("CUP Package Installer");
 
     m_root = new RootView(this);
@@ -628,6 +717,14 @@ bool InstallerWindow::loadPackage(const std::string& path) {
     file.seekg(128);
     file.read(reinterpret_cast<char*>(sections.data()), secCount * sizeof(struct cup_section_entry));
 
+    struct cup_catalog cat;
+    std::memset(&cat, 0, sizeof(cat));
+    rc = cup_catalog_build_safe(reinterpret_cast<const uint8_t*>(sections.data()), secCount, fileSize, &cat);
+    if (rc != 0) {
+        m_pkg.error = "Corrupted container: section catalog validation failed (error " + std::to_string(rc) + ")";
+        return false;
+    }
+
     // Locate manifest section
     for (const auto& sec : sections) {
         if (sec.type == CUP_SECT_MANIFEST && sec.length > 0 && sec.length < 1024 * 1024) {
@@ -696,7 +793,6 @@ void InstallerWindow::startInstall(const std::string& root) {
 
     m_isBusy = true;
     m_workerThread = std::make_unique<std::thread>([this]() {
-        // Run cup-cli install
         std::string cmd = "bin/cup-cli install \"" + m_pkg.path + "\" --root \"" + m_installRoot + "\" >/dev/null 2>&1";
         int ret = ::system(cmd.c_str());
         m_isBusy = false;

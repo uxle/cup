@@ -8,6 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <cassert>
+#include <cstring>
 #include <filesystem>
 
 namespace cup::gui {
@@ -64,22 +65,40 @@ int runHeadlessSelftest(const std::string& packagePath) {
         check(win.currentPage() == Page::Install, "Page transitioned to Install");
         check(win.installState() == InstallState::Succeeded, "Installation state succeeded");
 
-        // 6. Test tampered package fails closed
-        std::string tmpTampered = "/tmp/tampered_test.cup";
+        // 6. Test tampered header fails closed (Gate 1 validation)
+        std::string tmpTamperedHdr = "/tmp/tampered_hdr.cup";
+        {
+            std::ifstream in(packagePath, std::ios::binary);
+            std::vector<char> buf((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+            if (buf.size() > 50) {
+                buf[10] ^= 0x55; // Corrupt header byte -> SHA256 footer check must fail
+            }
+            std::ofstream out(tmpTamperedHdr, std::ios::binary);
+            out.write(buf.data(), buf.size());
+        }
+
+        InstallerWindow winTamperedHdr(/*headless=*/true);
+        bool tamperHdrOk = winTamperedHdr.loadPackage(tmpTamperedHdr);
+        check(!tamperHdrOk, "Header tamper rejected by Gate 1 footer hash validation");
+        std::filesystem::remove(tmpTamperedHdr);
+
+        // 7. Test section offset overflow tampering fails closed
+        std::string tmpTamperedSec = "/tmp/tampered_sec.cup";
         {
             std::ifstream in(packagePath, std::ios::binary);
             std::vector<char> buf((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
             if (buf.size() > 200) {
-                buf[150] ^= 0x55; // corrupt section header
+                // Section 0 offset at 128 + 8 (uint64_t): set to huge value beyond file size
+                std::memset(buf.data() + 128 + 8, 0xFF, 8);
             }
-            std::ofstream out(tmpTampered, std::ios::binary);
+            std::ofstream out(tmpTamperedSec, std::ios::binary);
             out.write(buf.data(), buf.size());
         }
 
-        InstallerWindow winTampered(/*headless=*/true);
-        bool tamperOk = winTampered.loadPackage(tmpTampered);
-        check(!tamperOk, "Tampered package rejected by gate 1 validation");
-        std::filesystem::remove(tmpTampered);
+        InstallerWindow winTamperedSec(/*headless=*/true);
+        bool tamperSecOk = winTamperedSec.loadPackage(tmpTamperedSec);
+        check(!tamperSecOk, "Section table offset wrap/overflow rejected by catalog validation");
+        std::filesystem::remove(tmpTamperedSec);
     } else {
         std::cout << "  (Notice: Skipping real package checks as packagePath not given or found)\n";
     }

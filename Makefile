@@ -96,29 +96,22 @@ assets:
 rust:
 	cd rust_workspace && cargo build --release && cargo test
 
-# --- GUI installer (Cutefish-debinstaller-style Qt5/QML front-end) ---------
-# Builds gui/gui.pro with qmake. For a locally-extracted Qt toolchain pass:
-#   make gui GUI_QMAKE=/path/to/qmake GUI_QMAKE_LIBDIR=/path/to/usr/lib/x86_64-linux-gnu
+# --- GUI installer (Native Cutefish Toolkit front-end) -----------------------
 GUI_DIR   := gui
 GUI_BUILD := gui/build
-GUI_QMAKE       ?= qmake
-GUI_QMAKE_LIBDIR ?=
-
-GUI_ENV := QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software
 
 gui: lib/libcup2.a bin/cup-cli
-	@mkdir -p $(GUI_BUILD)
-	cd $(GUI_BUILD) && $(GUI_QMAKE) ../gui.pro $(if $(GUI_QMAKE_LIBDIR),QMAKE_LIBDIR+=$(GUI_QMAKE_LIBDIR),) && $(MAKE) -j$$(nproc)
+	@cmake -B $(GUI_BUILD) -S $(GUI_DIR)
+	@cmake --build $(GUI_BUILD) -j$$(nproc)
 
-# Headless backend battery (52 checks) + offscreen UI flow test (7 checks).
+# Headless selftest battery: packaging checks, metadata extraction, tampering gate.
 gui-test: gui
-	cd $(GUI_BUILD) && $(GUI_ENV) ./cup-gui-installer --selftest ../../packages/foopaint-3.0.0-x86_64.cup
-	cd $(GUI_BUILD) && $(GUI_ENV) ./cup-gui-installer --smoke-qml ../../packages/foopaint-3.0.0-x86_64.cup
+	./$(GUI_BUILD)/cup-gui-installer --selftest packages/foopaint-3.0.0-x86_64.cup
 
 # Offscreen renders of the Home/App/Install pages for visual review.
 gui-screenshots: gui
-	@mkdir -p $(GUI_BUILD)/screenshots
-	cd $(GUI_BUILD) && $(GUI_ENV) ./cup-gui-installer --screenshot screenshots ../../packages/foopaint-3.0.0-x86_64.cup
+	@mkdir -p docs/screenshots
+	./$(GUI_BUILD)/cup-gui-installer --screenshot docs/screenshots packages/foopaint-3.0.0-x86_64.cup
 
 deb: gui
 	./scripts/package-deb.sh
