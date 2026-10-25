@@ -87,7 +87,7 @@ Section: utils
 Priority: optional
 Architecture: amd64
 Maintainer: CuteFish Universal Package Contributors <support@cutefish.org>
-Depends: libc6 (>= 2.38), libstdc++6 (>= 14), libgcc-s1 (>= 3.0), libssl3t64 (>= 3.0) | libssl3 (>= 3.0), cutefish-toolkit (>= 1.0)
+Depends: libc6 (>= 2.38), libstdc++6 (>= 14), libgcc-s1 (>= 3.0), libssl3t64 (>= 3.0) | libssl3 (>= 3.0), cutefish-toolkit (>= 1.0~) | cutefish-toolkit
 Provides: cup
 Description: CuteFish Universal Package (CUP v3.0) Package Manager & Runtime
  CUP is a next-generation universal Linux packaging format and runtime
